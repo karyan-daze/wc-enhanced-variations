@@ -64,7 +64,7 @@ class WC_enhanced_variations
         $charset_collate = $wpdb->get_charset_collate();
 
 
-        $sql_enhanced_variations_table = "CREATE TABLE $enhanced_variations_table(
+        $sql_enhanced_variations_table = "CREATE TABLE IF NOT EXISTS $enhanced_variations_table(
 		product_id bigint(20) unsigned,
 		attribute_slug CHAR(20),
 		value_slug CHAR(20),
