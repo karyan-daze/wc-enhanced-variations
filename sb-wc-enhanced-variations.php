@@ -20,8 +20,8 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-require_once(__DIR__ . "/../sb-wp-core/class/Enqueue_helper.php");
-require_once(__DIR__ . "/../sb-wp-core/sb_constants.php");
+require_once(__DIR__ . "/../wp-core/class/Enqueue_helper.php");
+require_once(__DIR__ . "/../wp-core/sb_constants.php");
 
 
 
