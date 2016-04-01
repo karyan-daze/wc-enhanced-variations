@@ -15,16 +15,6 @@
         }
     ],
     "type": "wordpress-plugin",
-    "repositories": [
-        {
-            "type": "composer",
-            "url": "https://wpackagist.org"
-        },
-        {
-            "type":"vcs",
-            "url":"git@bitbucket.org:shopboostr/wp_core.git"
-        }
-    ],
     "require": {
         "composer/installers": "~1.0",
         "shopboostr/wp-core": "dev-master"
