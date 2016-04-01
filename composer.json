@@ -1,0 +1,33 @@
+{
+    "name": "shopboostr/wc_enhancedVariations",
+    "description": "Shopboostr woocommerce enhanced variations allow to add extra fields to attributes value and prices per product per attribute value",
+    "keywords": ["wordpress", "plugin", "woocommerce","variation"],
+    "homepage": "",
+    "license": "",
+    "version": "dev-master",
+    "require": {
+        "php": ">=5.3.0"
+    },
+    "authors": [
+        {
+            "name": "Jean Duthon",
+            "homepage": ""
+        }
+    ],
+    "type": "wordpress-plugin",
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://wpackagist.org"
+        },
+        {
+            "type":"vcs",
+            "url":"git@bitbucket.org:shopboostr/wp_core.git"
+        }
+    ],
+    "require": {
+        "composer/installers": "~1.0",
+        "shopboostr/wp-core": "dev-master"
+    },
+    "minimum-stability": "dev"
+}

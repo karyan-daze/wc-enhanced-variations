@@ -1,0 +1,5 @@
+[
+  {"name":"price","type":"number"},
+  {"name":"desc","type":"text"},
+  {"name":"img","type":"image"}
+]

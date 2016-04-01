@@ -1,0 +1,18 @@
+<div class="image-field-wrapper form-field">
+
+    <div class="image-field-label">
+        <span> {{label}} </span>
+    </div>
+
+    <div id="image-uploader-meta-box" class="image-field-upload">
+        <div class="preview-image-wrapper" ng-if="linkVal">
+            <img class="wcpdf_saved_image" ng-src="{{linkVal}}" alt="" />
+            <a href="#" class="remove_image wcpdf-remove-image"><em>Remove</em></a>
+
+        </div>
+        <input class="wcpdf_image_id" type="text" style="display:none;" name="{{fieldId}}" value="" ng-model="imgId"/>
+        <input class="wcpdf_image_url" type="text" style="display:none;" name="wcpdf_image_url_{{fieldId}}" value="" ng-model="linkVal"/>
+        <input class="wcpdf_image_intern_change" type="text" style="display:none;" name="internal_change_{{fieldId}}" value="" ng-model="internalChange"/>
+        <a class="wcpdf-uppload-image button" href="#" data-uploader-title="Choose image" data-uploader-button-text="Choose image">Choose image</a>
+    </div>
+</div><!-- /.image-field-wrapper -->
