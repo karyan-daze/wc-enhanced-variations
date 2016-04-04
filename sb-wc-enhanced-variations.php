@@ -102,12 +102,10 @@ class WC_enhanced_variations
         forEach(WC_enhanced_variations::$extra_data_def as $value){
             $extraFieldsProp[$value['name']] = $value;
         }
-        error_log(print_r($extraFieldsProp,true));
         forEach($extraFieldsValue as $key=>$value){
             if(array_key_exists($key,$extraFieldsProp)){
                 $extraFieldsValue[$key] = array("value"=>$value);
                 if($extraFieldsProp[$key]['type'] == "image"){
-                    error_log(print_r( wp_get_attachment_image_src($value),true));
                     $extraFieldsValue[$key]["url"] = wp_get_attachment_image_src($value)[0];
                 }
             } else {
@@ -119,6 +117,42 @@ class WC_enhanced_variations
     }
 
 
+    public static function get_one_product_data($product_id){
+        $_pf = new \WC_Product_Factory();
+        $_product = $_pf->get_product($product_id);
+        return self::get_formatted_product($_product);
+    }
+
+    private static function get_formatted_product($product){
+        $myproduct = array("product"=> $product);
+        $myproduct["attributes"] = array();
+        forEach($product->get_attributes() as $attr){
+            if($attr["is_taxonomy"]==0){
+                $values = array_map(function($item){return array("name"=>$item,"slug"=>$item);},explode(" | ",$attr["value"]));
+            } else {
+                $values = wp_get_post_terms($product->id, $attr['name']);
+                forEach($values as $key => $value) {
+                    $values[$key] = $value->to_array();
+                }
+            }
+            forEach($values as $key => $value){
+                $extraFieldData = WC_enhanced_variations::db_get_enhanced_varation($product->get_id(),$attr["name"],$value["slug"]);
+                if($extraFieldData){
+                    $values[$key]["extraFieldsValue"] = WC_enhanced_variations::get_all_data($extraFieldData);
+                } else {
+                    $values[$key]["extraFieldsValue"] = array();
+                }
+            }
+            $myproduct["attributes"][$attr['name']] = array("name"=>$attr["name"], "values"=> $values);
+        }
+        $tmpvar = new \WC_Product_Variable($product->id);
+        $myproduct["id"] = $product->id;
+        $myproduct["name"] = $product->post->post_title;
+        $myproduct["variations"] = $tmpvar->get_available_variations();
+        return $myproduct;
+    }
+
+
 
 
     public static function get_bulk_variations_data(){
@@ -126,32 +160,8 @@ class WC_enhanced_variations
         $loop = new \WP_Query($args);
         $all_products = array();
         while ($loop->have_posts()) : $loop->the_post();
-            global $product, $post;
-            $myproduct = array("product"=> $product);
-            $myproduct["attributes"] = array();
-            forEach($product->get_attributes() as $attr){
-                if($attr["is_taxonomy"]==0){
-                    $values = array_map(function($item){return array("name"=>$item,"slug"=>$item);},explode(" | ",$attr["value"]));
-                } else {
-                    $values = wp_get_post_terms($post->ID, $attr['name']);
-                    forEach($values as $key => $value) {
-                        $values[$key] = $value->to_array();
-                    }
-                }
-                forEach($values as $key => $value){
-                    $extraFieldData = WC_enhanced_variations::db_get_enhanced_varation($product->get_id(),$attr["name"],$value["slug"]);
-                    if($extraFieldData){
-                        $values[$key]["extraFieldsValue"] = WC_enhanced_variations::get_all_data($extraFieldData);
-                    } else {
-                        $values[$key]["extraFieldsValue"] = array();
-                    }
-                }
-                $myproduct["attributes"][$attr['name']] = array("name"=>$attr["name"], "values"=> $values);
-            }
-            $tmpvar = new \WC_Product_Variable($product->id);
-            $myproduct["id"] = $product->id;
-            $myproduct["name"] = $product->post->post_title;
-            $myproduct["variations"] = $tmpvar->get_available_variations();
+            global $product;
+            $myproduct = self::get_formatted_product($product);
             array_push($all_products,$myproduct);
         endwhile;
         return json_encode($all_products);
@@ -202,8 +212,6 @@ class WC_enhanced_variations
 
     private static function db_update_enhanced_variation($oldVar, $newVals){
         $php_oldVals = json_decode($oldVar["json_data"],true);
-        error_log(print_r($newVals,true));
-        error_log(print_r($php_oldVals,true));
         foreach($newVals as $key => $val){
             $php_oldVals[$key] = $val;
         }
@@ -232,7 +240,6 @@ class WC_enhanced_variations
             }
             foreach ($variations as $var) {
                 $var_attrs = $var['attributes'];
-                error_log(print_r($var_attrs,true));
                 if ($var_attrs["attribute_" . $attribute["name"]] == $value["slug"]) {
                     $old_price = get_post_meta( $var["variation_id"], '_regular_price', true );
                     update_post_meta($var['variation_id'], "_regular_price", $old_price + $priceDelta);
