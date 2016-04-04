@@ -31,6 +31,23 @@ Possible types for now are :
 Some extra field comes with special power, the list so far is :
 - The name "price" will automagically update prices for all variations of the product that has the value for that attribute
 
+== Usage ==
+To retrieve a product by product id you can use the function :
+\Shopboostr\WC_enhanced_variations::get_one_product_data(product_id)
+It returns the product with product_id in the following form :
+{
+ product: WC_Product_Variable Object,
+ attributes: {
+    ~attrName:{
+        name: ~attrName,
+        values: [WooCommerceVariations]
+    }...
+ },
+ id: ~productId,
+ name: ~productName,
+ variations: [WooCommerceVariations]
+}
+
 == Frequently Asked Questions ==
 
 
