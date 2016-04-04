@@ -132,7 +132,7 @@ class WC_enhanced_variations
             } else {
                 $values = wp_get_post_terms($product->id, $attr['name']);
                 forEach($values as $key => $value) {
-                    $values[$key] = $value->to_array();
+                    $values[$key] = (array) $value;
                 }
             }
             forEach($values as $key => $value){
