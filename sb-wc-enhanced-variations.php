@@ -33,7 +33,7 @@ class WC_enhanced_variations
      *
      */
 
-    const PAGE_NAME = "Variations attributes management";
+    const PAGE_NAME = "SBVariationsAttributesManagement";
 
     private static $table_name;
 
@@ -85,7 +85,7 @@ class WC_enhanced_variations
     }
 
     public static function admin_menu() {
-        add_options_page('Variation bulk edit','Variation bulk edit','manage_options',WC_enhanced_variations::PAGE_NAME,__CLASS__ . '::variation_bulk_edit');
+        add_options_page('Enhanced variations management','Enhanced variations management','manage_options',WC_enhanced_variations::PAGE_NAME,__CLASS__ . '::variation_bulk_edit');
     }
 
     public static function variation_bulk_edit(){
