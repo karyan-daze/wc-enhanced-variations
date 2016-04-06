@@ -1,0 +1,29 @@
+<h3>Attribute bulk edit : </h3>
+
+
+
+<div class="main-content" ng-app="attr_bulk_edit" ng-controller="attrBulkCtrl">
+    <section class="attrBulkEdit col-md-12">
+        <div class="selection col-md-12">
+            <div class="col-md-2" isteven-multi-select input-model="attributesList" button-label="name" item-label="name" selection-mode="single" output-model="selectedAttribute" tick-property="ticked" on-item-click="loadModifiedFields()">
+            </div>
+        </div>
+        <div class="action col-md-12" ng-show="selectedAttribute[0]">
+            <div>
+                <span ng-repeat="field in extraDataDef">
+                <label>{{field["name"]}} : </label>
+                    <textarea ng-model="modifiedFields[field.name].value" ng-change="modifiedFieldChange(field.name)" ng-if="field['type']=='text'"></textarea>
+                    <input ng-model="modifiedFields[field.name].value" ng-change="modifiedFieldChange(field.name)" ng-if="field['type']=='number'" type="number"/>
+                    <wp-image-import value-id="selectedAttribute[0]" img-id="modifiedFields[field.name].value" link-val="modifiedFields[field.name].url" change-fn="modifiedFieldChange(id)" label="field.name" desc_tip="field.desc_tip" description="field.description" field-id="field.name" ng-if="field['type']=='image'"></wp-image-import>
+                </span>
+            </div>
+        </div>
+        <div class="submission" ng-show="selectedAttribute[0] && !inProgress">
+            <button ng-click="submitRequest()">Submit</button>
+            <button cancel="cancel()">Cancel</button>
+        </div>
+        <div class="loading" ng-show="inProgress">
+            Please wait, update in progress
+        </div>
+    </section>
+</div>

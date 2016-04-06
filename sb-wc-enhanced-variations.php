@@ -22,6 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 require_once(__DIR__ . "/../wp-core/class/Enqueue_helper.php");
 require_once(__DIR__ . "/../wp-core/sb_constants.php");
+require_once("sb-wc-enhanced-attributes.php");
 
 
 
@@ -38,7 +39,7 @@ class WC_enhanced_variations
     private static $table_name;
 
     private static $required_scripts =
-            array("personal" => [array("name"=>"var_bulk_edit","path"=>'admin_includes/js/')],
+            array("personal" => [array("name"=>"var_bulk_edit","path"=>'admin_includes/js/',"deps"=>array("wpImageImport")),array("name"=>"wpImageImport","path"=>"admin_includes/js/")],
                 "third-party" => [array("name"=>"isteven-multi-select","path"=>"isteven-multiselect/","deps"=>array("angularJS"),"hasCSS"=>true),
                                 array("name"=>"wcpdf","path"=>"wcpdf/","deps"=>array("jQuery"))]);
 
@@ -49,7 +50,7 @@ class WC_enhanced_variations
         global $wpdb;
         WC_enhanced_variations::$table_name = $wpdb->prefix . DB_PREFIX . 'enhanced_variations';
         register_activation_hook( __FILE__, __CLASS__ . '::activate' );
-        register_deactivation_hook( __FILE__, __CLASS__ . '::deactivate' );
+        //register_deactivation_hook( __FILE__, __CLASS__ . '::deactivate' );
         add_action('admin_menu', __CLASS__ . '::admin_menu');
         add_action( 'admin_enqueue_scripts',  __CLASS__ .  '::required_scripts' );
         add_action('wp_ajax_update_var_bulk_edit', __CLASS__ . '::update_bulk_variations_data');
@@ -130,20 +131,21 @@ class WC_enhanced_variations
             if($attr["is_taxonomy"]==0){
                 $values = array_map(function($item){return array("name"=>$item,"slug"=>$item);},explode(" | ",$attr["value"]));
             } else {
-                $values = wp_get_post_terms($product->id, $attr['name']);
-                forEach($values as $key => $value) {
-                    $values[$key] = (array) $value;
+                $attr["extraFieldsValue"] = WC_enhanced_attributes::get_extra_fields_data($attr["name"]);
+                $attr["values"] = wp_get_post_terms($product->id, $attr['name']);
+                forEach($attr["values"] as $key => $value) {
+                    $attr["values"][$key] = (array) $value;
                 }
             }
-            forEach($values as $key => $value){
+            forEach($attr["values"] as $key => $value){
                 $extraFieldData = WC_enhanced_variations::db_get_enhanced_varation($product->get_id(),$attr["name"],$value["slug"]);
                 if($extraFieldData){
-                    $values[$key]["extraFieldsValue"] = WC_enhanced_variations::get_all_data($extraFieldData);
+                    $attr["values"][$key]["extraFieldsValue"] = WC_enhanced_variations::get_all_data($extraFieldData);
                 } else {
-                    $values[$key]["extraFieldsValue"] = array();
+                    $attr["values"][$key]["extraFieldsValue"] = array();
                 }
             }
-            $myproduct["attributes"][$attr['name']] = array("name"=>$attr["name"], "values"=> $values);
+            $myproduct["attributes"][$attr['name']] = $attr;
         }
         $tmpvar = new \WC_Product_Variable($product->id);
         $myproduct["id"] = $product->id;
