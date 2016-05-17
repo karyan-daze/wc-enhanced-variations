@@ -243,6 +243,9 @@ class WC_enhanced_variations
             foreach ($variations as $var) {
                 $var_attrs = $var['attributes'];
                 if ($var_attrs["attribute_" . $attribute["name"]] == $value["slug"]) {
+                    $old_price = get_post_meta( $var["variation_id"], '_price', true );
+                    update_post_meta($var['variation_id'], "_price", $old_price + $priceDelta);
+                    
                     $old_price = get_post_meta( $var["variation_id"], '_regular_price', true );
                     update_post_meta($var['variation_id'], "_regular_price", $old_price + $priceDelta);
                 }
