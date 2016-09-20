@@ -125,32 +125,57 @@ class WC_enhanced_variations
     }
 
     private static function get_formatted_product($product){
+        $cachefile = $product->id . ".json";
+        $t = filemtime($cachefile);
+        $t = $t ? $t : 0;
+
         $myproduct = array("product"=> $product);
-        $myproduct["attributes"] = array();
-        forEach($product->get_attributes() as $attr){
-            if($attr["is_taxonomy"]==0){
-                $values = array_map(function($item){return array("name"=>$item,"slug"=>$item);},explode(" | ",$attr["value"]));
-            } else {
-                $attr["extraFieldsValue"] = WC_enhanced_attributes::get_extra_fields_data($attr["name"]);
-                $attr["values"] = wp_get_post_terms($product->id, $attr['name']);
-                forEach($attr["values"] as $key => $value) {
-                    $attr["values"][$key] = (array) $value;
-                }
-            }
-            forEach($attr["values"] as $key => $value){
-                $extraFieldData = WC_enhanced_variations::db_get_enhanced_varation($product->get_id(),$attr["name"],$value["slug"]);
-                if($extraFieldData){
-                    $attr["values"][$key]["extraFieldsValue"] = WC_enhanced_variations::get_all_data($extraFieldData);
+
+        if(self::_db_product_last_var_infos($product->id,$t)){
+            $myproduct["attributes"] = array();
+            forEach($product->get_attributes() as $attr){
+                if($attr["is_taxonomy"]==0){
+                    $values = array_map(function($item){return array("name"=>$item,"slug"=>$item);},explode(" | ",$attr["value"]));
                 } else {
-                    $attr["values"][$key]["extraFieldsValue"] = array();
+                    $attr["extraFieldsValue"] = WC_enhanced_attributes::get_extra_fields_data($attr["name"]);
+                    $attr["values"] = wp_get_post_terms($product->id, $attr['name']);
+                    forEach($attr["values"] as $key => $value) {
+                        $attr["values"][$key] = (array) $value;
+                    }
+                }
+                forEach($attr["values"] as $key => $value){
+                    $extraFieldData = WC_enhanced_variations::db_get_enhanced_varation($product->get_id(),$attr["name"],$value["slug"]);
+                    if($extraFieldData){
+                        $attr["values"][$key]["extraFieldsValue"] = WC_enhanced_variations::get_all_data($extraFieldData);
+                    } else {
+                        $attr["values"][$key]["extraFieldsValue"] = array();
+                    }
+                }
+                $myproduct["attributes"][$attr['name']] = $attr;
+            }
+            $tmpvar = new \WC_Product_Variable($product->id);
+            $myproduct["id"] = $product->id;
+            $myproduct["name"] = $product->post->post_title;
+            $myproduct["variations"] = $tmpvar->get_available_variations();
+
+            file_put_contents($cachefile, json_encode($myproduct));
+
+        } else {
+            $myproduct = json_decode(file_get_contents($cachefile), true);
+            forEach($myproduct["attributes"] as &$attr){
+                if($attr["is_taxonomy"]==1){
+                    $attr["extraFieldsValue"] = WC_enhanced_attributes::get_extra_fields_data($attr["name"]);
                 }
             }
-            $myproduct["attributes"][$attr['name']] = $attr;
         }
-        $tmpvar = new \WC_Product_Variable($product->id);
-        $myproduct["id"] = $product->id;
-        $myproduct["name"] = $product->post->post_title;
-        $myproduct["variations"] = $tmpvar->get_available_variations();
+
+
+        $myproduct["product"] = $product;
+
+
+
+
+
         return $myproduct;
     }
 
@@ -188,6 +213,15 @@ class WC_enhanced_variations
                 'json_data' => json_encode($json_data)
             )
         );
+    }
+
+    private static function _db_product_last_var_infos($pid, $lastDate){
+        global $wpdb;
+        $dbDate = $wpdb->get_row( "SELECT MAX(post_modified) AS lastDate FROM " . $wpdb->prefix . "posts" . " WHERE post_parent=" . $pid, ARRAY_A)["lastDate"];
+        if($dbDate == ""){
+            $dbDate = $wpdb->get_row( "SELECT MAX(post_modified) AS lastDate FROM " . $wpdb->prefix . "posts" . " WHERE ID=" . $pid, ARRAY_A)["lastDate"];
+        }
+        return strtotime($dbDate) > $lastDate;
     }
 
     private static function _db_update_json_data($oldVar,$json_data){
@@ -231,6 +265,13 @@ class WC_enhanced_variations
         $variations = $php_product->get_available_variations();
 
         $object = WC_enhanced_variations::db_get_enhanced_varation($php_product->get_id(),$attribute["name"],$value["slug"]);
+
+        foreach ($variations as $var) {
+            $var_attrs = $var['attributes'];
+            if ($var_attrs["attribute_" . $attribute["name"]] == $value["slug"]) {
+                wp_update_post(array("ID" => $var['variation_id']));
+            }
+        }
 
         if(array_key_exists("price",$modifiedValues)) {
             $priceDelta = (int) $modifiedValues["price"];
